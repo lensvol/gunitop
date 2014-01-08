@@ -25,6 +25,13 @@ class Gunitop(object):
         text = json.dumps(info)
         self.comm_socket.sendto(text, self.address)
 
+    def report_spawn(self, server, worker):
+        info = self._extract_worker_info(worker)
+        info.update({
+            'type': 'spawn'
+        })
+        self._send(info)
+
     def report_req(self, worker, req):
         info = self._extract_worker_info(worker)
         info.update({
@@ -44,6 +51,9 @@ class Gunitop(object):
             'path': req.path
         })
         self._send(info)
+
+    def get_post_fork(self):
+        return (lambda s, w: self.report_spawn(s, w))
 
     def get_pre_request(self):
         return (lambda w, r: self.report_req(w, r))
