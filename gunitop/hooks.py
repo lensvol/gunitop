@@ -2,6 +2,7 @@
 
 import os
 import socket
+import sys
 import time
 import json
 
@@ -52,11 +53,14 @@ class Gunitop(object):
         })
         self._send(info)
 
-    def get_post_fork(self):
-        return (lambda s, w: self.report_spawn(s, w))
 
-    def get_pre_request(self):
-        return (lambda w, r: self.report_req(w, r))
+def setup_gunitop_hooks():
+    g = Gunitop()
 
-    def get_post_request(self):
-        return (lambda w, r, e, resp: self.report_resp(w, r, e, resp))
+    handlers = {
+        'post_fork': (lambda a, w: g.report_spawn(a, w)),
+        'pre_request': (lambda w, r: g.report_req(w, r)),
+        'post_request': (lambda w, r, e, resp: g.report_resp(w, r, e, resp))
+    }
+    cfg_frame = sys._getframe(1)
+    cfg_frame.f_globals.update(handlers)
