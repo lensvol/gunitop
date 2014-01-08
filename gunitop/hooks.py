@@ -2,6 +2,7 @@
 
 import os
 import socket
+import time
 import json
 
 
@@ -13,11 +14,14 @@ class Gunitop(object):
 
     def _extract_worker_info(self, worker):
         return {
-            'pid': os.getpid(),
-            'ppid': worker.ppid,
+            'worker': {
+                'pid': os.getpid(),
+                'ppid': worker.ppid
+            }
         }
 
     def _send(self, info):
+        info['timestamp'] = int(time.time())
         text = json.dumps(info)
         self.comm_socket.sendto(text, self.address)
 
