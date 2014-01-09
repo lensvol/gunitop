@@ -51,8 +51,15 @@ class MonitorWindow(object):
             win.addstr(y(), x, '{}{}{}'.format(str(pid).center(6), ' '*3, w['status'][:mx-x-6]),
                                                curses.A_BOLD)
 
-        win.hline(2, 1, curses.ACS_HLINE, self.screen_width - 1)
+        win.hline(2, 1, curses.ACS_HLINE, self.screen_width - 2)
         win.vline(1, x + 7, curses.ACS_VLINE, self.screen_height - 2)
+
+	win.addch(2, 0, curses.ACS_LTEE)
+	win.addch(0, x + 7, curses.ACS_TTEE)
+	win.addch(2, x + 7, curses.ACS_PLUS)
+	win.addch(self.screen_height - 1, x + 7, curses.ACS_BTEE)
+	win.addch(2, self.screen_width - 1, curses.ACS_RTEE)
+
         win.refresh()
 
     def init_screen(self):
@@ -61,11 +68,13 @@ class MonitorWindow(object):
         self.win.keypad(True)
         curses.start_color()
         curses.init_pair(1, self.foreground, self.background)
+	curses.curs_set(0)
         curses.cbreak()
 
     def resetscreen(self):
         curses.nocbreak()
         self.win.keypad(False)
+	curses.curs_set(1)
         curses.echo()
         curses.endwin()
 
