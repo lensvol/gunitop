@@ -17,12 +17,18 @@ PERIOD = 1
 LEFT_BORDER_OFFSET = 3
 BORDER_SPACING = 1
 
+def animation(frames):
+    while True:
+        for frame in frames:
+            yield frame
+
 class MonitorWindow(object):
     win = None
     exiting = False
     screen_delay = PERIOD
     foreground = curses.COLOR_GREEN
     background = curses.COLOR_BLACK
+    spinner = animation('|/-\\').next
 
     def __init__(self, workers):
         self.workers = workers
@@ -35,6 +41,22 @@ class MonitorWindow(object):
 
         if key == 'Q':
             self.exiting = True
+
+    def draw_spinner(self):
+        '''
+        Draw simple heartbeat indicator, which will loop through specified frames
+        in bottom right corner.
+        '''
+        win = self.win
+        mx, my = self.screen_width, self.screen_height
+        # Get next frame
+        frame = self.spinner()
+        x = mx - len(frame) - 10
+
+        # Draw boundaries and the frame
+        win.addch(my - 1, x, curses.ACS_RTEE)
+        win.addstr(my - 1, x + 1, ''.join([' ', frame, ' ']), curses.color_pair(1))
+        win.addch(my - 1, x + len(frame) + 3, curses.ACS_LTEE)
 
     def draw(self):
         win = self.win
@@ -70,6 +92,7 @@ class MonitorWindow(object):
 	win.addch(self.screen_height - 1, x + 16, curses.ACS_BTEE)
         win.addch(2, x + 16, curses.ACS_PLUS)
 
+        self.draw_spinner()
         win.refresh()
         self.evict_workers()
 
@@ -95,7 +118,7 @@ class MonitorWindow(object):
         curses.endwin()
 
     def nap(self):
-        curses.napms(self.screen_delay)
+        curses.napms(self.screen_delay * 100)
 
     @property
     def screen_width(self):
@@ -166,14 +189,13 @@ def main():
     listener = ListenerThread(workers)
     listener.start()
 
-    import locale
-    locale.setlocale(locale.LC_ALL, '')
+    #import locale
+    #locale.setlocale(locale.LC_ALL, '')
 
     try:
         monitor = MonitorWindow(workers)
         monitor.init_screen()
         while not monitor.exiting:
-            time.sleep(PERIOD)
             monitor.draw()
             monitor.nap()
         monitor.resetscreen()
