@@ -42,7 +42,16 @@ class Gunitop(object):
         })
         self._send(info)
 
+    def report_exit(self, server, worker):
+        info = self._extract_worker_info(worker)
+        info['type'] = 'exit'
+        self._send(info)
+
     def report_resp(self, worker, req, env, resp):
+        # Checking if we were interrupted by SIGINT/SIGQUIT
+        if not worker.alive:
+            return
+
         info = self._extract_worker_info(worker)
         info.update({
             'resp_length': resp.sent,
@@ -60,7 +69,8 @@ def setup_gunitop_hooks():
     handlers = {
         'post_fork': (lambda a, w: g.report_spawn(a, w)),
         'pre_request': (lambda w, r: g.report_req(w, r)),
-        'post_request': (lambda w, r, e, resp: g.report_resp(w, r, e, resp))
+        'post_request': (lambda w, r, e, resp: g.report_resp(w, r, e, resp)),
+        'worker_exit': (lambda s, w: g.report_exit(s, w))
     }
     cfg_frame = sys._getframe(1)
     cfg_frame.f_globals.update(handlers)

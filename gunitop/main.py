@@ -48,7 +48,7 @@ class MonitorWindow(object):
         win.addstr(y(), x, '{}{}{}'.format('PID'.center(6), ' '*3, 'STATUS'), curses.color_pair(1))
 
         for pid, w in self.workers.iteritems():
-            win.addstr(y(), x, '{}{}{}'.format(str(pid).center(6), ' '*3, w['status'][:mx-x-6]),
+            win.addstr(y(), x, '{}{}{}'.format(str(pid).center(6), ' '*3, w['text'][:mx-x-6]),
                                                curses.A_BOLD)
 
         win.hline(2, 1, curses.ACS_HLINE, self.screen_width - 2)
@@ -61,6 +61,7 @@ class MonitorWindow(object):
 	win.addch(2, self.screen_width - 1, curses.ACS_RTEE)
 
         win.refresh()
+        self.evict_workers()
 
     def init_screen(self):
         self.win = curses.initscr()
@@ -70,6 +71,11 @@ class MonitorWindow(object):
         curses.init_pair(1, self.foreground, self.background)
 	curses.curs_set(0)
         curses.cbreak()
+
+    def evict_workers(self):
+        for pid, worker in workers.items():
+            if worker['status'] == 'EXIT':
+                workers.pop(pid)
 
     def resetscreen(self):
         curses.nocbreak()
@@ -118,28 +124,33 @@ class ListenerThread(threading.Thread):
         pid = info['worker']['pid']
         worker = self.workers.setdefault(pid, {
             'ppid': -1,
-            'status': u'Waiting...',
+            'text': u'Waiting...',
+            'status': 'IDLE',
             'statistics': collections.Counter()
         })
 
         if info_type == 'spawn':
             worker['ppid'] = info['worker']['ppid']
-            worker['status'] = u'Waiting...'
         elif info_type == 'request':
-            worker['status'] = '{0} {1}'.format(info['method'], info['path'])
+            worker['text'] = '{0} {1}'.format(info['method'], info['path'])
+            worker['status'] = 'WORK'
         elif info_type == 'response':
-            worker['status'] = 'Waiting...'
+            worker['text'] = 'Waiting...'
             worker['statistics'][info['status_code']] += 1
+            worker['status'] = 'IDLE'
+        elif info_type == 'exit':
+            worker['status'] = 'EXIT'
+            worker['text'] = 'SIGINT / SIGTERM / SIGQUIT'
 
     def run(self):
         while not self.stop:
             try:
                 text, source = self.socket.recvfrom(8192)
             except:
-                pass
+                time.sleep(PERIOD)
             else:
                 self.process(text)
-            time.sleep(PERIOD)
+            #time.sleep(PERIOD)
 
 def main():
     listener = ListenerThread(workers)
