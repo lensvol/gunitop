@@ -43,13 +43,20 @@ class MonitorWindow(object):
             self.exiting = True
 
     def draw_spinner(self):
+        '''
+        Draw simple heartbeat indicator, which will loop through specified frames
+        in bottom right corner.
+        '''
         win = self.win
-        my = self.screen_height - 1
-        win.addch(my, 2, curses.ACS_RTEE)
+        mx, my = self.screen_width, self.screen_height
+        # Get next frame
         frame = self.spinner()
-        win.addstr(my, 3, ''.join([' ', frame, ' ']), curses.color_pair(1))
-        win.addch(my, len(frame) + 5, curses.ACS_LTEE)
+        x = mx - len(frame) - 10
 
+        # Draw boundaries and the frame
+        win.addch(my - 1, x, curses.ACS_RTEE)
+        win.addstr(my - 1, x + 1, ''.join([' ', frame, ' ']), curses.color_pair(1))
+        win.addch(my - 1, x + len(frame) + 3, curses.ACS_LTEE)
 
     def draw(self):
         win = self.win
