@@ -27,7 +27,7 @@ class MonitorWindow(object):
     exiting = False
     screen_delay = PERIOD
     foreground = curses.COLOR_GREEN
-    background = curses.COLOR_BLACK
+    background = -1
     spinner = animation('|/-\\').next
 
     def __init__(self, workers):
@@ -101,6 +101,7 @@ class MonitorWindow(object):
         self.win.nodelay(True)
         self.win.keypad(True)
         curses.start_color()
+        curses.use_default_colors()
         curses.init_pair(1, self.foreground, self.background)
 	curses.curs_set(0)
         curses.cbreak()
