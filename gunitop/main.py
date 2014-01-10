@@ -45,7 +45,9 @@ class MonitorWindow(object):
         win.erase()
         win.bkgd(' ', curses.color_pair(1))
         win.border()
-        win.addstr(y(), x, '{}{}{}'.format('PID'.center(6), ' '*3, 'STATUS'), curses.color_pair(1))
+        win.addstr(y(), x,
+                   '   '.join(['PID'.center(6), 'STATUS', '']),
+                   curses.color_pair(1))
 
         for pid, w in self.workers.iteritems():
             win.addstr(y(), x, '{}{}{}'.format(str(pid).center(6), ' '*3, w['text'][:mx-x-6]),
@@ -53,12 +55,19 @@ class MonitorWindow(object):
 
         win.hline(2, 1, curses.ACS_HLINE, self.screen_width - 2)
         win.vline(1, x + 7, curses.ACS_VLINE, self.screen_height - 2)
+        win.vline(1, x + 16, curses.ACS_VLINE, self.screen_height - 2)
 
+        # Painting intersections...
 	win.addch(2, 0, curses.ACS_LTEE)
-	win.addch(0, x + 7, curses.ACS_TTEE)
-	win.addch(2, x + 7, curses.ACS_PLUS)
-	win.addch(self.screen_height - 1, x + 7, curses.ACS_BTEE)
 	win.addch(2, self.screen_width - 1, curses.ACS_RTEE)
+        win.addch(2, x + 7, curses.ACS_PLUS)
+
+	win.addch(0, x + 7, curses.ACS_TTEE)
+	win.addch(self.screen_height - 1, x + 7, curses.ACS_BTEE)
+
+	win.addch(0, x + 16, curses.ACS_TTEE)
+	win.addch(self.screen_height - 1, x + 16, curses.ACS_BTEE)
+        win.addch(2, x + 16, curses.ACS_PLUS)
 
         win.refresh()
         self.evict_workers()
