@@ -50,8 +50,9 @@ class MonitorWindow(object):
                    curses.color_pair(1))
 
         for pid, w in self.workers.iteritems():
-            win.addstr(y(), x, '{}{}{}'.format(str(pid).center(6), ' '*3, w['text'][:mx-x-6]),
-                                               curses.A_BOLD)
+            win.addstr(y(), x,
+                       '   '.join([str(pid).center(6), w['status'].center(6), w['text'][:mx-x-6]]),
+                       curses.A_BOLD)
 
         win.hline(2, 1, curses.ACS_HLINE, self.screen_width - 2)
         win.vline(1, x + 7, curses.ACS_VLINE, self.screen_height - 2)
