@@ -182,14 +182,13 @@ def main():
     listener = ListenerThread(workers)
     listener.start()
 
-    import locale
-    locale.setlocale(locale.LC_ALL, '')
+    #import locale
+    #locale.setlocale(locale.LC_ALL, '')
 
     try:
         monitor = MonitorWindow(workers)
         monitor.init_screen()
         while not monitor.exiting:
-            #time.sleep(PERIOD)
             monitor.draw()
             monitor.nap()
         monitor.resetscreen()
