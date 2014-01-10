@@ -17,12 +17,18 @@ PERIOD = 1
 LEFT_BORDER_OFFSET = 3
 BORDER_SPACING = 1
 
+def animation(frames):
+    while True:
+        for frame in frames:
+            yield frame
+
 class MonitorWindow(object):
     win = None
     exiting = False
     screen_delay = PERIOD
     foreground = curses.COLOR_GREEN
     background = curses.COLOR_BLACK
+    spinner = animation('|/-\\').next
 
     def __init__(self, workers):
         self.workers = workers
@@ -35,6 +41,15 @@ class MonitorWindow(object):
 
         if key == 'Q':
             self.exiting = True
+
+    def draw_spinner(self):
+        win = self.win
+        my = self.screen_height - 1
+        win.addch(my, 2, curses.ACS_RTEE)
+        frame = self.spinner()
+        win.addstr(my, 3, ''.join([' ', frame, ' ']), curses.color_pair(1))
+        win.addch(my, len(frame) + 5, curses.ACS_LTEE)
+
 
     def draw(self):
         win = self.win
@@ -70,6 +85,7 @@ class MonitorWindow(object):
 	win.addch(self.screen_height - 1, x + 16, curses.ACS_BTEE)
         win.addch(2, x + 16, curses.ACS_PLUS)
 
+        self.draw_spinner()
         win.refresh()
         self.evict_workers()
 
@@ -95,7 +111,7 @@ class MonitorWindow(object):
         curses.endwin()
 
     def nap(self):
-        curses.napms(self.screen_delay)
+        curses.napms(self.screen_delay * 100)
 
     @property
     def screen_width(self):
@@ -173,7 +189,7 @@ def main():
         monitor = MonitorWindow(workers)
         monitor.init_screen()
         while not monitor.exiting:
-            time.sleep(PERIOD)
+            #time.sleep(PERIOD)
             monitor.draw()
             monitor.nap()
         monitor.resetscreen()
