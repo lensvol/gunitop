@@ -50,10 +50,19 @@ class TabularWindow(object):
         win.bkgd(' ', curses.color_pair(1))
         win.border()
 
+        # Draw horizontal lines and intersections with border
         for x in self.vlines:
             win.vline(1, x, curses.ACS_VLINE, self.screen_height - 2)
             win.addch(0, x, curses.ACS_TTEE)
             win.addch(my - 1, x, curses.ACS_BTEE)
+
+        for y in self.hlines:
+            win.hline(y, 1, curses.ACS_HLINE, self.screen_width - 2)
+            win.addch(y, 0, curses.ACS_LTEE)
+            win.addch(y, mx - 1, curses.ACS_RTEE)
+            # Draw intersections with vertical lines
+            for x in self.vlines:
+                win.addch(y, x, curses.ACS_PLUS)
 
         win.refresh()
 
