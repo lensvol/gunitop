@@ -24,7 +24,6 @@ class TabularWindow(object):
         self.win = curses.initscr()
         self.win.nodelay(True)
         self.win.keypad(True)
-
         curses.start_color()
         # Setting transparency
         curses.use_default_colors()
@@ -32,6 +31,7 @@ class TabularWindow(object):
         # Hiding cursor
 	curses.curs_set(0)
         curses.cbreak()
+        self.init_window()
 
     def resetscreen(self):
         curses.nocbreak()
