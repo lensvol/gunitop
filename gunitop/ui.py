@@ -2,7 +2,6 @@
 
 import curses
 
-
 class TabularWindow(object):
     vlines = []
     hlines = []
@@ -11,6 +10,23 @@ class TabularWindow(object):
     background = curses.COLOR_BLACK
     closing = False
     refresh_delay = 100 # in milliseconds
+    taskbar = []
+
+    def _display_taskbar(self):
+        win = self.win
+        my = self.screen_height - 1
+
+        contents = map(lambda el: callable(el) and el() or el, self.taskbar)
+        contents = filter(lambda x: x, contents)
+
+        total_len = ((len(contents) - 1) * 3) + reduce(lambda t,s: t + len(s), contents, 0)
+        padding = ((self.screen_width - total_len) / 2) - 1
+        win.addstr(my, padding, ' | '.join(contents), curses.color_pair(1))
+
+        win.addch(my, padding + total_len, ' ')
+        win.addch(my, padding + total_len + 1, curses.ACS_LTEE)
+        win.addch(my, padding - 1, ' ')
+        win.addch(my, padding - 2, curses.ACS_RTEE)
 
     def handle_keypress(self):
         try:
@@ -77,6 +93,7 @@ class TabularWindow(object):
                 win.addch(y, x, curses.ACS_PLUS)
 
         self._draw_title()
+        self._display_taskbar()
 
         win.refresh()
 
