@@ -2,6 +2,8 @@
 
 import curses
 
+COLUMN_PADDING = 1
+
 def animation(frames):
     def player():
         while True:
@@ -18,7 +20,25 @@ class TabularWindow(object):
     background = curses.COLOR_BLACK
     closing = False
     refresh_delay = 100 # in milliseconds
+
     taskbar = []
+    columns = []
+    texts = []
+
+    def init_window(self):
+        my, mx = self.win.getmaxyx()
+        x = 1
+        for header, width in self.columns:
+            if width == -1:
+                width = mx - x - 4
+            self.texts.append(
+                (x+1, 1, header.center(width))
+            )
+            x += width + (COLUMN_PADDING * 2)
+            if mx <= x + 4:
+                break
+            self.vlines.append(x)
+        self.hlines.append(2)
 
     def _display_taskbar(self):
         win = self.win
@@ -100,6 +120,9 @@ class TabularWindow(object):
             for x in self.vlines:
                 win.addch(y, x, curses.ACS_PLUS)
 
+        for (x, y, text) in self.texts:
+            win.addstr(y, x, text, curses.A_NORMAL)
+
         self._draw_title()
         self._display_taskbar()
 
@@ -130,15 +153,15 @@ class TabularWindow(object):
 
 
 class TestTabWindow(TabularWindow):
-    title = 'Hello, world!'
-
     taskbar = [
         animation(['*--', '-*-', '--*']),
         animation('0123456789'),
         'Hello there!'
     ]
 
-    def init_window(self):
-        my, mx = self.win.getmaxyx()
-        self.hlines = range(3, my - 1, 3)
-        self.vlines = range(3, mx - 1, 3)
+    columns = [
+        ("PID", 5),
+        ("CPU", 5),
+        ("MEMORY", 8),
+        ("STATUS", -1)
+    ]

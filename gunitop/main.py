@@ -11,7 +11,7 @@ import time
 # for keeping track of y line offsets
 from itertools import count
 
-from ui import TabularWindow, animation
+from ui import TabularWindow, animation, TestTabWindow
 
 workers = {}
 # In seconds
