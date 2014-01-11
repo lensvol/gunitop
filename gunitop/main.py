@@ -63,7 +63,7 @@ class MonitorWindow(object):
         self.handle_keypress()
         x = LEFT_BORDER_OFFSET
         blank_line = y = count(1).next
-        mx, my = win.getmaxyx()
+        my, mx = win.getmaxyx()
         win.erase()
         win.bkgd(' ', curses.color_pair(1))
         win.border()
@@ -72,7 +72,10 @@ class MonitorWindow(object):
                    curses.color_pair(1))
 
         for pid, w in self.workers.iteritems():
-            win.addstr(y(), x,
+            line = y()
+            if line == my - 1:
+                break
+            win.addstr(line, x,
                        '   '.join([str(pid).center(6), w['status'].center(6), w['text'][:mx-x-6]]),
                        curses.A_BOLD)
 
