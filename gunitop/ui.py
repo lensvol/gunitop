@@ -2,6 +2,14 @@
 
 import curses
 
+def animation(frames):
+    def player():
+        while True:
+            for frame in frames:
+                yield frame
+    return player().next
+
+
 class TabularWindow(object):
     vlines = []
     hlines = []
@@ -119,3 +127,18 @@ class TabularWindow(object):
     def display_height(self):
         my, _ = self.win.getmaxyx()
         return my - 7
+
+
+class TestTabWindow(TabularWindow):
+    title = 'Hello, world!'
+
+    taskbar = [
+        animation(['*--', '-*-', '--*']),
+        animation('0123456789'),
+        'Hello there!'
+    ]
+
+    def init_window(self):
+        my, mx = self.win.getmaxyx()
+        self.hlines = range(3, my - 1, 3)
+        self.vlines = range(3, mx - 1, 3)

@@ -11,24 +11,21 @@ import time
 # for keeping track of y line offsets
 from itertools import count
 
+from ui import TabularWindow, animation
+
 workers = {}
 # In seconds
 PERIOD = 1
 LEFT_BORDER_OFFSET = 3
 BORDER_SPACING = 1
 
-def animation(frames):
-    while True:
-        for frame in frames:
-            yield frame
-
 class MonitorWindow(object):
     win = None
-    exiting = False
+    closing = False
     screen_delay = PERIOD
     foreground = curses.COLOR_GREEN
     background = -1
-    spinner = animation('|/-\\').next
+    spinner = animation('|/-\\')
 
     def __init__(self, workers):
         self.workers = workers
@@ -40,7 +37,7 @@ class MonitorWindow(object):
             return
 
         if key == 'Q':
-            self.exiting = True
+            self.closing = True
 
     def draw_spinner(self):
         '''
@@ -74,7 +71,7 @@ class MonitorWindow(object):
         for pid, w in self.workers.iteritems():
             win.addstr(y(), x,
                        '   '.join([str(pid).center(6), w['status'].center(6), w['text'][:mx-x-6]]),
-                       curses.A_BOLD)
+                       curses.A_NORMAL)
 
         win.hline(2, 1, curses.ACS_HLINE, self.screen_width - 2)
         win.vline(1, x + 7, curses.ACS_VLINE, self.screen_height - 2)
@@ -196,7 +193,7 @@ def main():
     try:
         monitor = MonitorWindow(workers)
         monitor.init_screen()
-        while not monitor.exiting:
+        while not monitor.closing:
             monitor.draw()
             monitor.nap()
         monitor.resetscreen()
