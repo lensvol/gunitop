@@ -6,6 +6,7 @@ import curses
 class TabularWindow(object):
     vlines = []
     hlines = []
+    title = None
     foreground = curses.COLOR_WHITE
     background = curses.COLOR_BLACK
     closing = False
@@ -16,18 +17,29 @@ class TabularWindow(object):
             key = self.win.getkey().upper()
         except:
             return
-
         if key == 'Q':
             self.closing = True
+
+    def _draw_title(self):
+        if self.title:
+            title = self.title
+            win = self.win
+            mx = self.screen_width
+            padding = (mx - len(title)) / 2 - 4
+            win.addch(0, padding + 1, curses.ACS_RTEE)
+            win.addstr(0, padding + 2, ''.join([' ', title, ' ']), curses.color_pair(1))
+            win.addch(0, padding + len(title) + 4, curses.ACS_LTEE)
 
     def init_screen(self):
         self.win = curses.initscr()
         self.win.nodelay(True)
         self.win.keypad(True)
         curses.start_color()
-        # Setting transparency
+
+        # Setting transparency and default color pair
         curses.use_default_colors()
         curses.init_pair(1, self.foreground, self.background)
+
         # Hiding cursor
 	curses.curs_set(0)
         curses.cbreak()
@@ -63,6 +75,8 @@ class TabularWindow(object):
             # Draw intersections with vertical lines
             for x in self.vlines:
                 win.addch(y, x, curses.ACS_PLUS)
+
+        self._draw_title()
 
         win.refresh()
 
