@@ -158,6 +158,16 @@ class ListenerThread(threading.Thread):
     def process(self, text):
         info = json.loads(text)
         info_type = info['type']
+
+        if info_type == 'reload':
+            # Server event
+            pid = info['ppid']
+            for worker in workers.values():
+                if worker['ppid'] == pid:
+                    worker['status'] = 'EXIT'
+                    worker['text'] = 'SIGHUP reload'
+            return
+
         pid = info['worker']['pid']
         worker = self.workers.setdefault(pid, {
             'ppid': -1,
