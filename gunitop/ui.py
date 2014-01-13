@@ -42,19 +42,25 @@ class TabularWindow(object):
 
     def _display_taskbar(self):
         win = self.win
-        my = self.screen_height - 1
-
+        my, mx = win.getmaxyx()
         contents = map(lambda el: callable(el) and el() or el, self.taskbar)
-        contents = filter(lambda x: x, contents)
-
-        total_len = ((len(contents) - 1) * 3) + reduce(lambda t,s: t + len(s), contents, 0)
-        padding = ((self.screen_width - total_len) / 2) - 1
-        win.addstr(my, padding, ' | '.join(contents), curses.color_pair(1))
-
-        win.addch(my, padding + total_len, ' ')
-        win.addch(my, padding + total_len + 1, curses.ACS_LTEE)
-        win.addch(my, padding - 1, ' ')
-        win.addch(my, padding - 2, curses.ACS_RTEE)
+        contents = reversed(filter(lambda x: x, contents))
+        y = my - 1
+        x = mx - 3
+        win.addch(y, x, curses.ACS_LTEE)
+        for el in contents:
+            if isinstance(el, tuple):
+                text, attr = el
+            else:
+                text = el
+                attr = curses.A_NORMAL | curses.color_pair(1)
+            win.addch(y, x - 1, ' ')
+            win.addch(y, x, curses.ACS_VLINE)
+            x -= len(text) + 3
+            if x > 3:
+                win.addch(y, x, curses.ACS_VLINE)
+                win.addch(y, x + 1, ' ')
+                win.addstr(y, x + 2, text, attr)
 
     def handle_keypress(self):
         try:
@@ -156,7 +162,7 @@ class TestTabWindow(TabularWindow):
     taskbar = [
         animation(['*--', '-*-', '--*']),
         animation('0123456789'),
-        'Hello there!'
+        ('Hello there!', curses.A_BOLD)
     ]
 
     columns = [
