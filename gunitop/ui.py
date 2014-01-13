@@ -2,6 +2,8 @@
 
 import curses
 
+from itertools import count
+
 COLUMN_PADDING = 1
 
 def animation(frames):
@@ -25,15 +27,15 @@ class TabularWindow(object):
     columns = []
     texts = []
 
+    start_row = 0
+
     def init_window(self):
         my, mx = self.win.getmaxyx()
         x = 1
         for header, width in self.columns:
             if width == -1:
                 width = mx - x - 4
-            self.texts.append(
-                (x+1, 1, header.center(width))
-            )
+            self.texts.append((x+1, 1, header.center(width)))
             x += width + (COLUMN_PADDING * 2)
             if mx <= x + 4:
                 break
@@ -61,6 +63,38 @@ class TabularWindow(object):
                 win.addch(y, x, curses.ACS_VLINE)
                 win.addch(y, x + 1, ' ')
                 win.addstr(y, x + 2, text, attr)
+
+    def _display_rows(self):
+        win = self.win
+        my, mx = win.getmaxyx()
+        y = count(3).next
+        height = my - 5
+        start = self.start_row
+        rows = self.get_rows()
+        total = len(rows)
+
+        if start >= total:
+            start = total - my
+        if start < 0:
+            start = 0
+
+        for row in rows:
+            line = y()
+            x = 1 + COLUMN_PADDING
+            if line >= height:
+                break
+            for (i, (_, width)) in enumerate(self.columns):
+                text = unicode(row[i])
+                if width == -1:
+                    width = mx - x - COLUMN_PADDING - 2
+                    text = text.ljust(width)
+                else:
+                    text = text.center(width)
+                win.addstr(line, x + COLUMN_PADDING, text[:width], curses.color_pair(1))
+                x += width + COLUMN_PADDING + 1
+
+    def get_rows(self):
+        return []
 
     def handle_keypress(self):
         try:
@@ -131,6 +165,7 @@ class TabularWindow(object):
 
         self._draw_title()
         self._display_taskbar()
+        self._display_rows()
 
         win.refresh()
 
@@ -171,3 +206,6 @@ class TestTabWindow(TabularWindow):
         ("MEMORY", 8),
         ("STATUS", -1)
     ]
+
+    def get_rows(self):
+        return [['1', 2, '333', '4'*100]]
