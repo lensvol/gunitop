@@ -31,12 +31,12 @@ class TabularWindow(object):
 
     def init_window(self):
         my, mx = self.win.getmaxyx()
-        x = 1
+        x = 0
         for header, width in self.columns:
             if width == -1:
                 width = mx - x - 4
-            self.texts.append((x+1, 1, header.center(width)))
-            x += width + (COLUMN_PADDING * 2)
+            self.texts.append((x + 1 + COLUMN_PADDING, 1, header.center(width)))
+            x += width + (COLUMN_PADDING * 2) + 1
             if mx <= x + 4:
                 break
             self.vlines.append(x)
@@ -49,7 +49,6 @@ class TabularWindow(object):
         contents = reversed(filter(lambda x: x, contents))
         y = my - 1
         x = mx - 3
-        win.addch(y, x, curses.ACS_LTEE)
         for el in contents:
             if isinstance(el, tuple):
                 text, attr = el
@@ -60,9 +59,10 @@ class TabularWindow(object):
             win.addch(y, x, curses.ACS_VLINE)
             x -= len(text) + 3
             if x > 3:
-                win.addch(y, x, curses.ACS_VLINE)
+                win.addch(y, x, curses.ACS_RTEE)
                 win.addch(y, x + 1, ' ')
                 win.addstr(y, x + 2, text, attr)
+        win.addch(y, mx - 3, curses.ACS_LTEE)
 
     def _display_rows(self):
         win = self.win
@@ -90,8 +90,8 @@ class TabularWindow(object):
                     text = text.ljust(width)
                 else:
                     text = text.center(width)
-                win.addstr(line, x + COLUMN_PADDING, text[:width], curses.color_pair(1))
-                x += width + COLUMN_PADDING + 1
+                win.addstr(line, x, text[:width], curses.color_pair(1))
+                x += width + (COLUMN_PADDING * 2) + 1
 
     def get_rows(self):
         return []
@@ -208,4 +208,4 @@ class TestTabWindow(TabularWindow):
     ]
 
     def get_rows(self):
-        return [['1', 2, '333', '4'*100]]
+        return [['65535', '200%', '1024MB', '4'*100]]
