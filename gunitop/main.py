@@ -141,6 +141,25 @@ class MonitorWindow(object):
         my, _ = self.win.getmaxyx()
         return my - 7
 
+class TabularMonitorWindow(TabularWindow):
+    columns = [
+        ('PID', 5),
+        ('STATUS', 6),
+        ('CPU', 4),
+        ('MEMORY', 6),
+        ('INFO', -1)
+    ]
+
+    def __init__(self, workers):
+        self.workers = workers
+        super(TabularMonitorWindow, self).__init__()
+
+    def get_rows(self):
+        return [
+            (pid, worker['status'], 0, 0, worker.get('text', ''))
+            for pid, worker in self.workers.iteritems()
+        ]
+
 class ListenerThread(threading.Thread):
 
     def __init__(self, workers, host="localhost", port=18114):
@@ -204,7 +223,7 @@ def main():
     #locale.setlocale(locale.LC_ALL, '')
 
     try:
-        monitor = MonitorWindow(workers)
+        monitor = TabularMonitorWindow(workers)
         monitor.init_screen()
         while not monitor.closing:
             monitor.draw()
