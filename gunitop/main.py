@@ -1,19 +1,14 @@
 #coding: utf-8
 
-import curses
 import collections
 import json
 import psutil
 import math
 import socket
-import sys
 import threading
 import time
 
-# for keeping track of y line offsets
-from itertools import count
-
-from ui import TabularWindow, animation, TestTabWindow
+from ui import TabularWindow
 
 workers = {}
 # In seconds
@@ -61,6 +56,7 @@ class TabularMonitorWindow(TabularWindow):
                            self.mem_as_text(vmem),
                            worker.get('text', '')))
         return result
+
 
 class ListenerThread(threading.Thread):
 
@@ -123,14 +119,11 @@ class ListenerThread(threading.Thread):
                 time.sleep(PERIOD)
             else:
                 self.process(text)
-            #time.sleep(PERIOD)
+
 
 def main():
     listener = ListenerThread(workers)
     listener.start()
-
-    #import locale
-    #locale.setlocale(locale.LC_ALL, '')
 
     try:
         monitor = TabularMonitorWindow(workers)

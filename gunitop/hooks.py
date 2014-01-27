@@ -69,6 +69,7 @@ class Gunitop(object):
         }
         self._send(info)
 
+
 def setup_gunitop_hooks():
     g = Gunitop()
 

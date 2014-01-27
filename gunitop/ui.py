@@ -4,7 +4,10 @@ import curses
 
 from itertools import count
 
+
 COLUMN_PADDING = 1
+BORDER_SPACING = 1
+
 
 def animation(frames):
     def player():
@@ -21,7 +24,7 @@ class TabularWindow(object):
     foreground = curses.COLOR_WHITE
     background = curses.COLOR_BLACK
     closing = False
-    refresh_delay = 100 # in milliseconds
+    refresh_delay = 100  # in milliseconds
 
     taskbar = []
     columns = []
@@ -130,14 +133,14 @@ class TabularWindow(object):
         curses.init_pair(1, self.foreground, self.background)
 
         # Hiding cursor
-	curses.curs_set(0)
+        curses.curs_set(0)
         curses.cbreak()
         self.init_window()
 
     def resetscreen(self):
         curses.nocbreak()
         self.win.keypad(False)
-	curses.curs_set(1)
+        curses.curs_set(1)
         curses.echo()
         curses.endwin()
 
