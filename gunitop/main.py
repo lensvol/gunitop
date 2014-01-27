@@ -3,6 +3,8 @@
 import curses
 import collections
 import json
+import psutil
+import math
 import socket
 import sys
 import threading
@@ -18,6 +20,7 @@ workers = {}
 PERIOD = 1
 LEFT_BORDER_OFFSET = 3
 BORDER_SPACING = 1
+
 
 class MonitorWindow(object):
     win = None
@@ -146,19 +149,42 @@ class TabularMonitorWindow(TabularWindow):
         ('PID', 5),
         ('STATUS', 6),
         ('CPU', 4),
-        ('MEMORY', 6),
+        ('VIRT', 6),
+        ('RSS', 6),
         ('INFO', -1)
     ]
+
+    def mem_as_text(self, amount):
+        if amount > 1024 ** 2:
+            return '{0}MB'.format(int(amount / 1024 ** 2))
+        else:
+            return '{0}B'.format(amount)
 
     def __init__(self, workers):
         self.workers = workers
         super(TabularMonitorWindow, self).__init__()
 
     def get_rows(self):
-        return [
-            (pid, worker['status'], 0, 0, worker.get('text', ''))
-            for pid, worker in self.workers.iteritems()
-        ]
+        result = []
+
+        for pid, worker in self.workers.items():
+            proc = worker['process']
+            if not proc:
+                continue
+
+            try:
+                (rss, vmem) = proc.get_memory_info()
+                cpu = proc.get_cpu_percent()
+            except psutil._error.NoSuchProcess:
+                continue
+
+            result.append((pid,
+                           worker['status'],
+                           '%i%%' % math.ceil(cpu),
+                           self.mem_as_text(rss),
+                           self.mem_as_text(vmem),
+                           worker.get('text', '')))
+        return result
 
 class ListenerThread(threading.Thread):
 
@@ -189,8 +215,16 @@ class ListenerThread(threading.Thread):
             'ppid': -1,
             'text': u'Waiting...',
             'status': 'IDLE',
-            'statistics': collections.Counter()
+            'statistics': collections.Counter(),
+            'process': None
         })
+
+        if not worker['process']:
+            try:
+                worker['process'] = psutil.Process(pid)
+            except psutil._error.NoSuchProcess:
+                # Message from a "ghost" process
+                worker['process'] = None
 
         if info_type == 'spawn':
             worker['ppid'] = info['worker']['ppid']
