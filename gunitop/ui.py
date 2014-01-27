@@ -45,24 +45,29 @@ class TabularWindow(object):
     def _display_taskbar(self):
         win = self.win
         my, mx = win.getmaxyx()
+        # Trying to acquire contents of taskbar
         contents = map(lambda el: callable(el) and el() or el, self.taskbar)
-        contents = reversed(filter(lambda x: x, contents))
-        y = my - 1
-        x = mx - 3
-        for el in contents:
-            if isinstance(el, tuple):
-                text, attr = el
-            else:
-                text = el
-                attr = curses.A_NORMAL | curses.color_pair(1)
-            win.addch(y, x - 1, ' ')
-            win.addch(y, x, curses.ACS_VLINE)
-            x -= len(text) + 3
-            if x > 3:
-                win.addch(y, x, curses.ACS_RTEE)
-                win.addch(y, x + 1, ' ')
-                win.addstr(y, x + 2, text, attr)
-        win.addch(y, mx - 3, curses.ACS_LTEE)
+
+        if contents:
+            # Because we align taskbar contents to the right corner, we need to reverse them
+            contents = reversed(filter(lambda x: x, contents))
+            y = my - 1
+            x = mx - 3
+            for el in contents:
+                if isinstance(el, tuple):
+                    text, attr = el
+                else:
+                    text = el
+                    attr = curses.A_NORMAL | curses.color_pair(1)
+                # Draw the layout
+                win.addch(y, x - 1, ' ')
+                win.addch(y, x, curses.ACS_VLINE)
+                x -= len(text) + 3
+                if x > 3:
+                    win.addch(y, x, curses.ACS_RTEE)
+                    win.addch(y, x + 1, ' ')
+                    win.addstr(y, x + 2, text, attr)
+                win.addch(y, mx - 3, curses.ACS_LTEE)
 
     def _display_rows(self):
         win = self.win
