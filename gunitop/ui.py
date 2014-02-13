@@ -32,6 +32,9 @@ class TabularWindow(object):
 
     start_row = 0
 
+    def close_window(self):
+        self.closing = True
+
     def init_window(self):
         my, mx = self.win.getmaxyx()
         x = 0
@@ -109,6 +112,9 @@ class TabularWindow(object):
             key = self.win.getkey().upper()
         except:
             return
+        self.keymapper(key)
+
+    def keymapper(self, key):
         if key == 'Q':
             self.closing = True
 
