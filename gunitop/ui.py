@@ -24,7 +24,7 @@ class TabularWindow(object):
     foreground = curses.COLOR_WHITE
     background = curses.COLOR_BLACK
     closing = False
-    refresh_delay = 100  # in milliseconds
+    refresh_delay = 50  # in milliseconds
 
     taskbar = []
     columns = []

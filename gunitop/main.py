@@ -25,6 +25,11 @@ class TabularMonitorWindow(TabularWindow):
         ('INFO', -1)
     ]
 
+    cur_sorting_by = 0
+    taskbar = [
+        'Sort: {0}'.format(columns[cur_sorting_by][0])
+    ]
+
     def mem_as_text(self, amount):
         if amount > 1024 ** 2:
             return '{0}MB'.format(int(amount / 1024 ** 2))
@@ -42,7 +47,6 @@ class TabularMonitorWindow(TabularWindow):
             proc = worker['process']
             if not proc:
                 continue
-
             try:
                 (rss, vmem) = proc.get_memory_info()
                 cpu = proc.get_cpu_percent()
@@ -55,7 +59,25 @@ class TabularMonitorWindow(TabularWindow):
                            self.mem_as_text(rss),
                            self.mem_as_text(vmem),
                            worker.get('text', '')))
+
+        result = sorted(result,
+                        key=lambda it: it[self.cur_sorting_by],
+                        reverse=True)
+
         return result
+
+    def keymapper(self, key):
+        if key == 'KEY_F(5)':
+            sort_order = self.cur_sorting_by
+            sort_order += 1
+
+            if sort_order  > len(self.columns) - 1:
+                sort_order = 0
+            self.taskbar[0] = 'Sort: {0}'.format(self.columns[sort_order][0])
+
+            self.cur_sorting_by = sort_order
+        else:
+            super(TabularMonitorWindow, self).keymapper(key)
 
 
 class ListenerThread(threading.Thread):
